@@ -18,17 +18,17 @@ def index():
         if session['username']:
             return 'You are logged in as ' + session['username']
     except KeyError:
-        return render_template('index.html')
+        return redirect(url_for('homepage'))
     
 
 @app.route('/login', methods=['POST'])
 def login():
     
-    login_user = user_collection.find_one({'name' : request.form['username']})
+    login_user = user_collection.find_one({'uid' : request.form['username']})
 
     if login_user:
         if hashpw(request.form['pass'].encode('utf-8'), login_user['password']) == login_user['password']:
-            session['username']=login_user['name']
+            session['username']=login_user['uid']
             return redirect(url_for('index'))
 
     return 'Invalid username/password combination'
@@ -37,17 +37,20 @@ def login():
 def register():
     if request.method == 'POST':
         
-        existing_user = user_collection.find_one({'name' : request.form['username']})
+        existing_user = user_collection.find_one({'uname' : request.form['username']})
 
         if existing_user is None:
             hashpass = hashpw(request.form['pass'].encode('utf-8'), gensalt())
-            users.insert({'name' : request.form['username'], 'password' : hashpass})
+            users.insert({'uname' : request.form['username'], 'password' : hashpass})
             return redirect(url_for('index'))
         
         return 'That username already exists!'
 
     return render_template('register.html')
 
+@app.route('/home')
+def homepage():
+    render_template('index.html')
 
 @app.route('/logout')
 def logout():
@@ -63,5 +66,4 @@ def logout():
 
 
 if __name__ == '__main__':
-    
     app.run(debug=True)
