@@ -16,22 +16,25 @@ user_collection=mongo.db.users
 def index():
     try:
         if session['username']:
-            return 'You are logged in as ' + session['username']
+            return redirect(url_for('homepage'))
     except KeyError:
-        return redirect(url_for('homepage'))
+        return redirect(url_for('login'))
     
 
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['GET','POST'])
 def login():
-    
-    login_user = user_collection.find_one({'uid' : request.form['username']})
+    if request.method=='POST':
+        login_user = user_collection.find_one({'uname' : request.form['username']})
+        #print(login_user)
+        if login_user:
+            
+            if hashpw(request.form['pass'].encode('utf-8'), login_user['password']) == login_user['password']:
+                session['username']=login_user['uname']
+                return redirect(url_for('homepage'))
 
-    if login_user:
-        if hashpw(request.form['pass'].encode('utf-8'), login_user['password']) == login_user['password']:
-            session['username']=login_user['uid']
-            return redirect(url_for('index'))
-
-    return 'Invalid username/password combination'
+        return render_template('login.html',err='Invalid username/password combination')
+    else:
+        return render_template('login.html')
 
 @app.route('/register', methods=['POST', 'GET'])
 def register():
@@ -41,16 +44,23 @@ def register():
 
         if existing_user is None:
             hashpass = hashpw(request.form['pass'].encode('utf-8'), gensalt())
-            users.insert({'uname' : request.form['username'], 'password' : hashpass})
+            user_collection.insert({'uname' : request.form['username'], 'password' : hashpass})
             return redirect(url_for('index'))
         
-        return 'That username already exists!'
-
+        return render_template('register.html',err='That username already exists!') 
     return render_template('register.html')
+
+
 
 @app.route('/home')
 def homepage():
-    render_template('index.html')
+    return render_template('index.html',data={'uname':session['username']})
+
+@app.route('/account')
+def account():
+    return 'your account settings'
+
+
 
 @app.route('/logout')
 def logout():

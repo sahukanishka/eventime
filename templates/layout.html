@@ -16,7 +16,7 @@
 </head>
 
 <body>
-
+    {% block scripts %}{% endblock %}
     {% block body %}{% endblock %}
 
     <script src="{{ url_for('static', filename='js/jquery-3.4.1.min.js') }}"></script>
