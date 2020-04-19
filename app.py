@@ -1,6 +1,8 @@
 from flask import Flask,request,session,render_template,url_for,redirect
 from flask_pymongo import PyMongo
 from bcrypt import hashpw,gensalt
+from datetime import datetime
+from bson.objectid import ObjectId
 
 app = Flask(__name__)
 
@@ -9,9 +11,10 @@ app.secret_key = 'mysecret'
 
 mongo = PyMongo(app)
 user_collection=mongo.db.users
-
-
-
+event_collection=mongo.db.events
+dept_collection=mongo.db.departments
+current_user=None
+DATE_FORMAT='%d/%m/%y %I:%M %p'
 @app.route('/')
 def index():
     try:
@@ -52,14 +55,43 @@ def register():
 
 
 
-@app.route('/home')
+@app.route('/home', methods=['GET','POST'])
 def homepage():
-    return render_template('index.html',data={'uname':session['username']})
+    global current_user
+    current_user=user_collection.find_one({'uname' : session['username']})
+    events=event_collection.find({},{'_id':1,'name':1,'description':1})
+    return render_template('index.html',current_user=current_user,data={'events':events})
 
 @app.route('/account')
 def account():
     return 'your account settings'
 
+@app.route('/event/<query>')
+def event(query):
+    tevent=event_collection.find_one({'_id': ObjectId(query)})
+    print(tevent)
+    return render_template('event.html',current_user=current_user,tevent=tevent)
+
+@app.route('/event/new',methods=['GET','POST'])
+def addEvent():
+    if request.method=='POST':
+        timing=request.form['datetimes']
+        stTime,endTime=timing.split('-')
+        stTime=datetime.strptime(stTime.rstrip(),DATE_FORMAT)
+        endTime=datetime.strptime(endTime.lstrip(),DATE_FORMAT)
+        newEvent={
+        'name':request.form['ename'],
+        'description':request.form['descp'],
+        'start':stTime,
+        'end':endTime,
+        'dept_name':request.form['dept'],
+        'venue':request.form['venue']}
+        eventId=event_collection.insert_one(newEvent).inserted_id
+        return redirect(url_for('.event',query=str(eventId)))
+    else:
+        dept_list=dept_collection.find()
+        
+        return render_template('add_event.html',current_user=current_user,data={'dept':dept_list})
 
 
 @app.route('/logout')

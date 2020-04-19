@@ -1,0 +1,67 @@
+{% extends 'index.html' %}
+
+{% block inhead %}
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+{% endblock inhead %}
+
+{% block content %}
+
+<div class="container h-100">
+    <div class="row h-100 justify-content-center align-items-center">
+        <div class="col-10 col-md-8 col-lg-6">
+            <!-- Form -->
+            <form class="form-example" action="{{ url_for('addEvent') }}" method="post">
+                <h1>Add Event</h1>
+                
+                <!-- Input fields -->
+                <div class="form-group">
+                    <label for="ename">Event Name</label>
+                    <input type="text" class="form-control ename" id="ename" placeholder="Event Name" name="ename">
+                </div>
+                <div class="form-group">
+                  <label for="descp">Description</label>
+                  <textarea name="descp" id="descp" class="form-control" placeholder="Add Description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="datetimes">Timing</label>
+                    <input type="text" name="datetimes" class="form-control" id="timing"/>
+                </div>
+                <div class="form-group">
+                    <label for="dept">Department</label>
+                    <select class="form-control" id="dept" name='dept'>
+                      {% for dept in data['dept'] %}
+                          <option>{{dept['name']}}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="venue">Venue</label>
+                    <input type="text" class="form-control" id="venue" placeholder="Enter Venue" name="venue">
+                </div>
+                <button type="submit" class="btn btn-primary btn-customized">ADD Event</button>
+            </form>
+
+            <!-- Form end -->
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+{% block scripts %}
+<script type="text/javascript">
+    $(function() {
+        $('input[name="datetimes"]').daterangepicker({
+          timePicker: true,
+          startDate: moment().startOf('hour'),
+          endDate: moment().startOf('hour').add(32, 'hour'),
+          locale: {
+            format: 'DD/M/YY hh:mm A'
+          }
+        });
+      });
+</script>
+{% endblock scripts %}
+{% block scripts_bottom %}
+<script src="{{ url_for('static',filename='js/moment.min.js') }}"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+{% endblock scripts_bottom %}

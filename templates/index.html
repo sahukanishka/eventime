@@ -16,9 +16,20 @@
         <li class="nav-item">
           <a class="nav-link" href="#">All Events</a>
         </li>
+        {% if current_user['access']=='admin' %}
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            {{data['uname']}}
+            ADD
+          </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <a class="dropdown-item" href="#">Teacher Account</a>
+            <a class="dropdown-item" href="{{ url_for('addEvent') }}">Event</a>
+          </div>
+        </li>
+        {% endif %}
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            {{current_user['uname']}}
           </a>
           <div class="dropdown-menu" aria-labelledby="navbarDropdown">
             <a class="dropdown-item" href="{{ url_for('account') }}">My Account</a>
@@ -37,67 +48,27 @@
       </form>
     </div>
   </nav>
+  {% block content %}
+  
+  
 <div class="row">
-<div class="col-sm-4">
-  <div class="card">
-    <img src="..." class="card-img-top event_picture" alt="{{ url_for('static', filename='pup.jpg') }}" onerror="imgError">
-    <div class="card-body">
-      <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-    </div>
-  </div>
-</div>
-  <div class="col-sm-4">
-  <div class="card">
-    <img src="..." class="card-img-top event_picture" alt="{{ url_for('static', filename='pup.jpg') }}">
-    <div class="card-body">
-      <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-    </div>
-  </div>
-  </div>
-  <div class="col-sm-4">
-  <div class="card">
-    <img src="..." class="card-img-top event_picture" alt="{{ url_for('static', filename='pup.jpg') }}">
-    <div class="card-body">
-      <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-    </div>
-  </div>
-  </div>
-  <div class="col-sm-4">
-    <div class="card">
-      <img src="..." class="card-img-top event_picture" alt="{{ url_for('static', filename='pup.jpg') }}">
-      <div class="card-body">
-        <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-      </div>
-    </div>
-    </div>
-    <div class="col-sm-4">
-  <div class="card">
-    <img src="..." class="card-img-top event_picture" alt="{{ url_for('static', filename='pup.jpg') }}">
-    <div class="card-body">
-      <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-    </div>
-  </div>
-  </div>
-  <div class="col-sm-4">
-    <div class="card">
-      <img src="..." class="card-img-top event_picture" alt="{{ url_for('static', filename='pup.jpg') }}">
-      <div class="card-body">
-        <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-      </div>
-    </div>
-    </div>
-    <div class="col-sm-4">
-        <div class="card">
-          <img src="/static/img/pu.jpg" class="card-img-top event_picture">
-          <div class="card-body">
-            <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-          </div>
-        </div>
-        </div>
-</div>
+{% for event in data['events']  %}
 
+<div class="col-sm-3" style="padding: 2%;">
+  <div class="card">
+    <img src="..." class="card-img-top event_picture" alt="image" onerror="imgError(this);">
+    <div class="card-body">
+      <p class="card-title" style="font-weight: 600;">{{ event['name'] }}</p>
+      <p class="card-text">{{ event['description'] }}</p>
+      <a class="stretched-link" href="{{ url_for('event',query=event['_id']) }}"></a>
+    </div>
+  </div>
+</div>
+{% endfor %}
+</div>
+{% endblock content %}
     
-{% endblock %}
+{% endblock body %}
 {% block scripts %}
 <script type="text/javascript">
   function imgError(image) {
