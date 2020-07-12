@@ -1,0 +1,47 @@
+{% extends 'index.html' %}
+
+{% block inhead %}
+<link rel="stylesheet" href="{{ url_for('static',filename='css/user_acc.css')}}">
+{% endblock inhead %}
+
+{% block content %}
+
+<div style="margin-top:50px;" class="container">
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="card" style="width:300px;text-align: center;">
+                <img src="{{ url_for('static', filename='profile.png') }}" alt="Card image" class="center img-thumbnail"
+                    style=" border-radius: 50%;width: 80%;margin-top: 20px;">
+                <div class="card-body">
+                    <h4 class="card-title">{{ current_user['uname']}}</h4>
+                    <p class="card-text">{{current_user['access']}}</p>
+                    <a href="{{ url_for('logout')}}" style="  background-color:#7538a6;color: white;" class="btn ">Logout</a>
+                    
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+
+
+
+            <table style=" box-shadow: 5px 5px 5px #C6C6C6;" id="customers">
+                <tr>
+                    <th>Event Name</th>
+                    <th>Start Time</th>
+                </tr>
+                {% for event in uevents %}
+                
+                <tr>
+                    <a href="{{url_for('event',query=event['_id'])}}">
+                    <td>{{event['name']}}</td></a>
+                    <td>{{event['start']}}</td>
+                
+                </tr>
+                {% endfor %}
+            </table>
+
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

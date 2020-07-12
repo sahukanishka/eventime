@@ -1,21 +1,167 @@
-{% extends 'index.html' %}
-
-{% block content %}
-<div class="jumbotron">
-    <div class="container">
-        <div class="row">
-            
-            <div class="col-md-6">
-                <img src="{{ url_for('static', filename='pup.jpg') }}" />
-            </div>
-            <div class="col-md-6">
-                <h2>{{ tevent['name'] }}</h2>
-                <h6>{{ tevent['description'] }}</h6>
-                <hr>
-                
-            </div>
-        </div>
+{% extends 'index.html' %} {% block content %}
+<div class="jumbotron" style="padding: 2rem 1rem;">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4">
+        <img src="{{ url_for('static', filename='pup.jpg') }}" />
       </div>
+      <div class="col-md-4">
+        <h2>{{ tevent['name'] }}</h2>
+        <h5>{{ tevent['description'] }}</h5>
+        <hr />
+        <p>
+          <b>Department:</b>{{ tevent['dept_name'] }}<br />
+          <b>Start Date:</b>{{ tevent['start'] }}<br />
+          <b>End Date:</b>{{ tevent['end'] }}<br />
+          <b>Venue:</b>{{ tevent['venue']}}
+        </p>
+        {% if current_user['access'] in ['admin','teacher'] %}
+        <button type="button" class="btn btn-secondary">Edit</button>
+        <button type="button" class="btn btn-danger">Delete</button>
+        {% else %} {% if not participated %}
+        <form
+          method="POST"
+          action="{{ url_for('participate',query=tevent['_id'],rtype='push') }}"
+        >
+          <button type="submit" class="btn btn-warning">Participate</button>
+        </form>
+        {% else %}
+        <form
+          method="POST"
+          action="{{ url_for('participate',query=tevent['_id'],rtype='pull') }}"
+        >
+          <button type="submit" class="btn btn-danger">Rollout</button>
+        </form>
+        {% endif %} {% endif %}
+      </div>
+      {% if current_user['access'] in ['admin','teacher'] %}
+      <div class="col-md-4">
+        <form
+          method="POST"
+          action="{{ url_for('participate',query=tevent['_id'],rtype='update') }}"
+        >
+          <div class="form-group">
+            <label for="update-text">Example textarea</label>
+            <textarea
+              class="form-control"
+              name="update-text"
+              rows="3"
+            ></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Put new update</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+  </div>
 </div>
+{% if current_user['access'] in ['admin','teacher'] %}
+<div class="row" style="width: 100%;">
+  <div class="col" style="padding-left: 2rem;">
+    <h3>Participants List:</h3>
+    <table class="table table-striped">
+      <!-- style="width: 80%; margin: auto;" -->
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Name</th>
+          <th scope="col">Department</th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in tevent['participants'] %}
+        <tr>
+          <th scope="row">{{ loop.index }}</th>
+          <td>{{p['name']}}</td>
+          <td>{{p['dept']}}</td>
+          <td>
+            <form
+              method="POST"
+              action="{{ url_for('removePart',query=tevent['_id'],partid=p['pid']) }}"
+            >
+              <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="col" style="padding-left: 2rem;">
+    <h3>Updates:</h3>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th scope="col">Date</th>
+          <th scope="col">Description</th>
+          <th scope="col"></th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td scope="row">20/8/2020 8:40 PM</td>
+          <td colspan="2">This new update</td>
+          <td>
+            <form
+              method="POST"
+              action="{{ url_for('participate',query=tevent['_id'],rtype='delupd') }}"
+            >
+              <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% for upd in tevent['updates'] %}
+        <tr>
+          <td scope="row">{{upd['time']}}</td>
+          <td colspan="2">{{upd['desc']}}</td>
+          <td>
+            <form
+              method="POST"
+              action="{{ url_for('participate',query=tevent['_id'],rtype='delupd') }}"
+            >
+              <button
+                type="submit"
+                class="btn btn-danger"
+                name="ind"
+                value="{{loop.index}}"
+              >
+                Delete
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
+  {% endif %} 
+  {% if current_user['access'] not in ['admin','teacher'] %}
+  <div class="row" style="width: 100%;">
+    <div class="col" style="padding-left: 2rem;">
+      <h3>Updates:</h3>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th scope="col">Date</th>
+            <th scope="col">Description</th>
+            <th scope="col"></th>
+            
+          </tr>
+        </thead>
+        <tbody>
+          {% for upd in tevent['updates'] %}
+          <tr>
+            <td scope="row">{{upd['time']}}</td>
+            <td colspan="2">{{upd['desc']}}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+</div>
 {% endblock content %}

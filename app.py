@@ -47,10 +47,10 @@ def register():
 
         if existing_user is None:
             hashpass = hashpw(request.form['pass'].encode('utf-8'), gensalt())
-            user_collection.insert({'uname' : request.form['username'], 'password' : hashpass})
+            user_collection.insert({'uname' : request.form['username'], 'password' : hashpass,'access':request.form['category'],'department':request.form['dept']})
             return redirect(url_for('index'))
-        
-        return render_template('register.html',err='That username already exists!') 
+        print(request.form)
+        return render_template('register.html',err='That username already exists!',username=request.form['username'],password=request.form['pass']) 
     return render_template('register.html')
 
 
@@ -64,13 +64,35 @@ def homepage():
 
 @app.route('/account')
 def account():
-    return 'your account settings'
+    uevents=event_collection.find({'_id':{'$in':current_user['events']}},{'_id':1,'name':1,'start':1})
+    return render_template('user_acc.html',current_user=current_user,uevents=uevents)
 
-@app.route('/event/<query>')
+@app.route('/event/<query>',methods=['GET','POST'])
 def event(query):
+    global current_user
     tevent=event_collection.find_one({'_id': ObjectId(query)})
-    print(tevent)
-    return render_template('event.html',current_user=current_user,tevent=tevent)
+    #print(rtype)
+    try:
+        #print("inside try")
+        users=[p['pid'] for p in tevent['participants']]
+        #print(users,current_user['_id'])
+        participated=current_user['_id'] in users
+        #print(participated)
+    except:
+        #print(e)
+        participated=False
+    if request.method=='POST':
+        #update event with new partisipant
+        #print(current_user['_id'])
+        if rtype=='push':
+            user_collection.update_one({'_id': current_user['_id']}, {'$push': {'events': ObjectId(query)}})
+            event_collection.update_one({'_id': ObjectId(query)},{'$push':{'participants':{'pid':ObjectId(current_user['_id']),'name':current_user['uname'],'dept':current_user['department']}}})
+        elif rtype=='pull':
+            print(rtype)
+            pass
+        return redirect(request.url)
+    print(participated)
+    return render_template('event.html',current_user=current_user,tevent=tevent,participated=participated)
 
 @app.route('/event/new',methods=['GET','POST'])
 def addEvent():
@@ -92,6 +114,32 @@ def addEvent():
         dept_list=dept_collection.find()
         
         return render_template('add_event.html',current_user=current_user,data={'dept':dept_list})
+
+@app.route('/event/<query>/<rtype>',methods=['POST'])
+def participate(query,rtype):
+    global current_user
+    if rtype=='push':
+        user_collection.update_one({'_id': current_user['_id']}, {'$push': {'events': ObjectId(query)}})
+        event_collection.update_one({'_id': ObjectId(query)},{'$push':{'participants':{'pid':ObjectId(current_user['_id']),'name':current_user['uname'],'dept':current_user['department']}}})
+    elif rtype=='pull':
+        event_collection.update_one({ '_id': ObjectId(query) },{ '$pull': { 'participants': { 'pid':current_user['_id']}}})
+        user_collection.update_one({'_id': current_user['_id']},{'$pull': {'events': ObjectId(query)}})
+    elif rtype=='update':
+        event_collection.update_one({'_id': ObjectId(query)},{'$push':{'updates':{'time':datetime.now(),'desc':request.form['update-text']}}})
+        print(request.form)
+    elif rtype=='delupd':
+        event_collection.update_one({ '_id': ObjectId(query) },{ '$unset': { 'updates.'+str(int(request.form['ind'])-1):1}})
+        event_collection.update_one({'_id':ObjectId(query)},{'$pull':{'updates':None}})
+        print(request.form)
+    return redirect(url_for('event',query=query))
+
+@app.route('/event/<query>/<partid>/remove',methods=['POST'])
+def removePart(query,partid):
+    global current_user
+    user_collection.update_one({'_id': ObjectId(partid)}, {'$pull': {'events': ObjectId(query)}})
+    event_collection.update_one({'_id': ObjectId(query)},{'$pull':{'participants':{'pid':ObjectId(partid)}}})
+    return redirect(url_for('event',query=query))
+
 
 
 @app.route('/logout')
