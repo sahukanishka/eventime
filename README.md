@@ -1,8 +1,9 @@
 # eventime
 <h3>Team project  </h3>
-<p>kanishka sahu 
+<p>
+ <ul>kanishka sahu 
 Vivek sharma 
-Simarpreet singh </p>
+Simarpreet singh </ul></p>
 
 <h3> About </h3>
 
